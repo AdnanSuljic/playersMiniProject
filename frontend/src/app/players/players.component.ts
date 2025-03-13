@@ -59,8 +59,15 @@ export class PlayersComponent implements OnInit{
     this.http.post('http://localhost:3000/players', this.newPlayer)
       .subscribe(
         (response) => {
-          console.log('Data sent successfuly!', response);
-          alert('Data added in database!');
+          console.log('Data sent successfully!', response);
+          this.http.get<Player[]>('http://localhost:3000/players').subscribe(
+            (players) => {
+              this.players = players; 
+            },
+            (error) => {
+              console.error('Error fetching updated players list:', error);
+            }
+          );
         },
         (error) => {
           console.error('Error!', error);
