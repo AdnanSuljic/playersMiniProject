@@ -25,6 +25,7 @@ export class PlayersComponent implements OnInit{
   };
   isLoading: boolean = true
   data: any
+  searchText: string = '';
 
   constructor(private http: HttpClient) {}
   
@@ -32,7 +33,7 @@ export class PlayersComponent implements OnInit{
     this.isLoading = true;
   this.http.get<Player[]>('http://localhost:3000/players').subscribe(
     (response) => {
-      this.players = response;  // Očuvaj tip sigurnost
+      this.players = response;  
       this.isLoading = false;
     },
     (error) => {
@@ -40,6 +41,18 @@ export class PlayersComponent implements OnInit{
       console.log('Error:', error);
     }
   );
+  }
+
+  get filteredPlayers(): Player[] {
+    if (!this.searchText) {
+      return this.players; 
+    }
+    const lowerCaseSearch = this.searchText.toLowerCase();
+    return this.players.filter(
+      (player) =>
+        player.playerName.toLowerCase().includes(lowerCaseSearch) ||
+        player.nationalTeam.toLowerCase().includes(lowerCaseSearch)
+    );
   }
 
   onSubmit() {
