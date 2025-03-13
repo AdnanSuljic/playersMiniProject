@@ -1,0 +1,25 @@
+services:
+  db:  
+    image: postgres:13
+    restart: always
+    container_name: players-db  
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: malatajna
+      POSTGRES_DB: players-db 
+    ports:
+      - "5433:5432"  
+    volumes:
+      - postgres_data2:/var/lib/postgresql/data  
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+    - 8080:8080
+
+volumes:
+  postgres_data2: 
+    driver: local
+
+  
