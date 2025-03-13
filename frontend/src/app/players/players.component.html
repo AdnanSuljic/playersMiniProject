@@ -1,0 +1,70 @@
+<form (ngSubmit)="onSubmit()" #playerForm="ngForm">
+    <div class="mb-3">
+      <label for="playerName" class="form-label">Player Name</label>
+      <input
+        type="text"
+        class="form-control"
+        id="playerName"
+        name="playerName"
+        [(ngModel)]="newPlayer.playerName"
+        required
+      />
+    </div>
+    <div class="mb-3">
+      <label for="numberOfGoals" class="form-label">Number of Goals</label>
+      <input
+        type="number"
+        class="form-control"
+        id="numberOfGoals"
+        name="numberOfGoals"
+        [(ngModel)]="newPlayer.numberOfGoals"
+        required
+      />
+    </div>
+    <div class="mb-3">
+      <label for="numberOfAppearances" class="form-label">Number of Appearances</label>
+      <input
+        type="number"
+        class="form-control"
+        id="numberOfAppearances"
+        name="numberOfAppearances"
+        [(ngModel)]="newPlayer.numberOfAppearances"
+        required
+      />
+    </div>
+    <div class="mb-3">
+      <label for="nationalTeam" class="form-label">National Team</label>
+      <input
+        type="text"
+        class="form-control"
+        id="nationalTeam"
+        name="nationalTeam"
+        [(ngModel)]="newPlayer.nationalTeam"
+        required
+      />
+    </div>
+    <button type="submit" class="btn btn-primary" [disabled]="!playerForm.form.valid">
+      Add Player
+    </button>
+  </form>
+
+
+<table class="table table-bordered table-striped">
+    <thead class="table-dark" >
+        <tr>
+            <th>Name</th>
+            <th>Goals</th>
+            <th>Appearances</th>
+            <th>National Team</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let player of players">
+            <td>{{ player.playerName }}</td>
+            <td>{{ player.numberOfGoals }}</td>
+            <td>{{ player.numberOfAppearances }}</td>
+            <td>{{ player.nationalTeam }}</td>
+        </tr>
+    </tbody>
+</table>
+
