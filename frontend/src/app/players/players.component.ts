@@ -99,11 +99,6 @@ export class PlayersComponent implements OnInit{
       .subscribe(
         (response) => {
           console.log('Data sent successfully!', response);
-          this.chartOptions.data[0].dataPoints.push({
-            label: this.newPlayer.playerName,
-            y: this.newPlayer.numberOfGoals
-          });
-          this.chartOptions.data[0].dataPoints.sort((a, b) => a.y - b.y);
           this.http.get<Player[]>('http://localhost:3000/players').subscribe(
             (players) => {
               this.players = players; 
@@ -112,6 +107,12 @@ export class PlayersComponent implements OnInit{
               console.error('Error fetching updated players list:', error);
             }
           );
+          setTimeout(() => {
+            this.updateChartData();
+            this.renderChart();
+          }, 100);
+          this.cdr.detectChanges()
+         
         },
         (error) => {
           console.error('Error!', error);
@@ -120,8 +121,29 @@ export class PlayersComponent implements OnInit{
       );
   }
 
+  updateChartData() {
+    // Clear old chart data
+    this.chartOptions.data[0].dataPoints = [];
+  
+    // Populate dataPoints with fresh data from `players`
+    this.players.forEach(player => {
+      this.chartOptions.data[0].dataPoints.push({
+        label: player.playerName,
+        y: player.numberOfGoals
+      });
+    });
+  
+    // Sort players by goals in ascending order
+    this.chartOptions.data[0].dataPoints.sort((a, b) => a.y - b.y);
+  
+    this.cdr.detectChanges(); // Trigger UI update
+  }
+  
+
   renderChart() {
     setTimeout(() => {
+      if (this.chart) 
+        this.chart.destroy(); 
       this.chart = new CanvasJS.Chart("chartContainer", this.chartOptions);
       this.chart.render();
     }, 0);
