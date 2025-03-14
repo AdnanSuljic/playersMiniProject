@@ -22,35 +22,11 @@ export class PlayersComponent implements OnInit{
     numberOfAppearances: 0,
     nationalTeam: '',
   };
+  
   isLoading: boolean = true
   data: any
   searchText: string = '';
   chart: any;
-
-  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
-  
-  ngOnInit(): void {
-    this.isLoading = true;
-    this.http.get<Player[]>('http://localhost:3000/players').subscribe(
-      (response) => {
-        this.players = response
-        this.isLoading = false;
-
-        this.addPlayersToChart()
-        this.sortChartAsc()
-        this.renderChart();
-      },
-      (error) => {
-        this.isLoading = false;
-        console.log('Error:', error);
-      }
-    );
-  }
-
-  ngAfterViewInit(): void {
-    this.renderChart();
-    this.cdr.detectChanges()
-  }
 
   chartOptions: { 
     title: { text: string },
@@ -77,46 +53,38 @@ export class PlayersComponent implements OnInit{
     }]
   };
 
+  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
+  
+  ngOnInit(): void {
+    this.isLoading = true;
+    this.getPlayersFromDb()
+  }
+
+  ngAfterViewInit(): void {
+    this.renderChart();
+    this.cdr.detectChanges()
+  }
+
   onSubmit() {
     this.http.post('http://localhost:3000/players', this.newPlayer)
       .subscribe(
         (response) => {
           console.log('Data sent successfully!', response);
           this.resetFormAfterAddingPlayer()
-
-          this.http.get<Player[]>('http://localhost:3000/players').subscribe(
-            (players) => {
-              this.players = players; 
-            },
-            (error) => {
-              console.error('Error fetching updated players list:', error);
-            }
-          );
-
-          setTimeout(() => {
-            this.updateChartData();
-            this.renderChart();
-          }, 100);
-          this.cdr.detectChanges()
-         
+          this.updatePlayersAfterAdding()
+          this.timeOutForChartReload()
         },
         (error) => {
-          console.error('Error!', error);
-          alert('Error while sending data.');
+          console.error('Error while sending data.', error);
         }
       );
   }
 
   get filteredPlayers(): Player[] {
-    if (!this.searchText) {
+    if (!this.searchText) 
       return this.players; 
-    }
-    const lowerCaseSearch = this.searchText.toLowerCase();
-    return this.players.filter(
-      (player) =>
-        player.playerName.toLowerCase().includes(lowerCaseSearch) ||
-        player.nationalTeam.toLowerCase().includes(lowerCaseSearch)
-    );
+    
+    return this.filterPlayers()
   }
 
   updateChartData() {
@@ -130,6 +98,7 @@ export class PlayersComponent implements OnInit{
     setTimeout(() => {
       if (this.chart) 
         this.chart.destroy(); 
+
       this.chart = new CanvasJS.Chart("chartContainer", this.chartOptions);
       this.chart.render();
     }, 0);
@@ -161,4 +130,49 @@ export class PlayersComponent implements OnInit{
   clearChartData(){
     this.chartOptions.data[0].dataPoints = [];
   }
+
+  getPlayersFromDb(){
+    this.http.get<Player[]>('http://localhost:3000/players').subscribe(
+      (response) => {
+        this.players = response
+        this.isLoading = false;
+
+        this.addPlayersToChart()
+        this.sortChartAsc()
+        this.renderChart();
+      },
+      (error) => {
+        this.isLoading = false;
+        console.log('Error:', error);
+      }
+    );
+  }
+
+  updatePlayersAfterAdding(){
+    this.http.get<Player[]>('http://localhost:3000/players').subscribe(
+      (players) => {
+        this.players = players; 
+      },
+      (error) => {
+        console.error('Error fetching updated players list:', error);
+      }
+    );
+  }
+
+  timeOutForChartReload(){ //time out necessary to wait for players to refresh
+    setTimeout(() => {
+      this.updateChartData();
+      this.renderChart();
+    }, 100);
+    this.cdr.detectChanges()
+  }
+
+  filterPlayers(){
+    const lowerCaseSearch = this.searchText.toLowerCase();
+    return this.players.filter(
+      (player) =>
+        player.playerName.toLowerCase().includes(lowerCaseSearch) 
+    );
+  }
+
 }
