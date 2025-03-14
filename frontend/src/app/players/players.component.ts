@@ -36,13 +36,8 @@ export class PlayersComponent implements OnInit{
         this.players = response
         this.isLoading = false;
 
-        this.players.forEach(player => {
-          this.chartOptions.data[0].dataPoints.push({
-            label: player.playerName,
-            y: player.numberOfGoals
-          });
-        });
-        this.chartOptions.data[0].dataPoints.sort((a, b) => a.y - b.y);
+        this.addPlayersToChart()
+        this.sortChartAsc()
         this.renderChart();
       },
       (error) => {
@@ -55,18 +50,6 @@ export class PlayersComponent implements OnInit{
   ngAfterViewInit(): void {
     this.renderChart();
     this.cdr.detectChanges()
-  }
-
-  get filteredPlayers(): Player[] {
-    if (!this.searchText) {
-      return this.players; 
-    }
-    const lowerCaseSearch = this.searchText.toLowerCase();
-    return this.players.filter(
-      (player) =>
-        player.playerName.toLowerCase().includes(lowerCaseSearch) ||
-        player.nationalTeam.toLowerCase().includes(lowerCaseSearch)
-    );
   }
 
   chartOptions: { 
@@ -99,13 +82,8 @@ export class PlayersComponent implements OnInit{
       .subscribe(
         (response) => {
           console.log('Data sent successfully!', response);
-          this.newPlayer = {
-            id: -1,
-            playerName: '',
-            numberOfGoals: 0,
-            numberOfAppearances: 0,
-            nationalTeam: '',
-          };
+          this.resetFormAfterAddingPlayer()
+
           this.http.get<Player[]>('http://localhost:3000/players').subscribe(
             (players) => {
               this.players = players; 
@@ -114,6 +92,7 @@ export class PlayersComponent implements OnInit{
               console.error('Error fetching updated players list:', error);
             }
           );
+
           setTimeout(() => {
             this.updateChartData();
             this.renderChart();
@@ -128,18 +107,22 @@ export class PlayersComponent implements OnInit{
       );
   }
 
+  get filteredPlayers(): Player[] {
+    if (!this.searchText) {
+      return this.players; 
+    }
+    const lowerCaseSearch = this.searchText.toLowerCase();
+    return this.players.filter(
+      (player) =>
+        player.playerName.toLowerCase().includes(lowerCaseSearch) ||
+        player.nationalTeam.toLowerCase().includes(lowerCaseSearch)
+    );
+  }
+
   updateChartData() {
-    this.chartOptions.data[0].dataPoints = [];
-  
-    this.players.forEach(player => {
-      this.chartOptions.data[0].dataPoints.push({
-        label: player.playerName,
-        y: player.numberOfGoals
-      });
-    });
-  
-    this.chartOptions.data[0].dataPoints.sort((a, b) => a.y - b.y);
-  
+    this.clearChartData()
+    this.addPlayersToChart()
+    this.sortChartAsc()
     this.cdr.detectChanges(); 
   }
   
@@ -152,4 +135,30 @@ export class PlayersComponent implements OnInit{
     }, 0);
   }
 
+  sortChartAsc(){
+    this.chartOptions.data[0].dataPoints.sort((a, b) => a.y - b.y);
+  }
+
+  resetFormAfterAddingPlayer(){
+    this.newPlayer = {
+      id: -1,
+      playerName: '',
+      numberOfGoals: 0,
+      numberOfAppearances: 0,
+      nationalTeam: '',
+    };
+  }
+
+  addPlayersToChart(){
+    this.players.forEach(player => {
+      this.chartOptions.data[0].dataPoints.push({
+        label: player.playerName,
+        y: player.numberOfGoals
+      });
+    });
+  }
+
+  clearChartData(){
+    this.chartOptions.data[0].dataPoints = [];
+  }
 }
