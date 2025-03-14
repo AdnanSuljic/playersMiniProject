@@ -2,13 +2,13 @@ import { Component, OnInit, ChangeDetectorRef  } from '@angular/core';
 import { Player } from '../Player';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { CanvasJS, CanvasJSAngularChartsModule } from '@canvasjs/angular-charts';
+import { PlayersService } from '../players.service';
 
 @Component({
   selector: 'app-players',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule, CanvasJSAngularChartsModule],
+  imports: [CommonModule, FormsModule, CanvasJSAngularChartsModule],
   templateUrl: './players.component.html',
   styleUrl: './players.component.css'
 })
@@ -22,7 +22,7 @@ export class PlayersComponent implements OnInit{
     numberOfAppearances: 0,
     nationalTeam: '',
   };
-  
+
   isLoading: boolean = true
   data: any
   searchText: string = '';
@@ -53,7 +53,7 @@ export class PlayersComponent implements OnInit{
     }]
   };
 
-  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {}
+  constructor(private playersService: PlayersService, private cdr: ChangeDetectorRef) {}
   
   ngOnInit(): void {
     this.isLoading = true;
@@ -66,18 +66,11 @@ export class PlayersComponent implements OnInit{
   }
 
   onSubmit() {
-    this.http.post('http://localhost:3000/players', this.newPlayer)
-      .subscribe(
-        (response) => {
-          console.log('Data sent successfully!', response);
-          this.resetFormAfterAddingPlayer()
-          this.updatePlayersAfterAdding()
-          this.timeOutForChartReload()
-        },
-        (error) => {
-          console.error('Error while sending data.', error);
-        }
-      );
+    this.playersService.addNewPlayer(this.newPlayer).subscribe(() => {
+      this.resetFormAfterAddingPlayer();
+      this.updatePlayersAfterAdding();
+      this.timeOutForChartReload();
+    });
   }
 
   get filteredPlayers(): Player[] {
@@ -132,24 +125,20 @@ export class PlayersComponent implements OnInit{
   }
 
   getPlayersFromDb(){
-    this.http.get<Player[]>('http://localhost:3000/players').subscribe(
+    this.playersService.getPlayers().subscribe(
       (response) => {
-        this.players = response
-        this.isLoading = false;
-
-        this.addPlayersToChart()
-        this.sortChartAsc()
+        this.players = response;
+        this.updateChartData();
         this.renderChart();
       },
       (error) => {
-        this.isLoading = false;
         console.log('Error:', error);
       }
     );
   }
 
   updatePlayersAfterAdding(){
-    this.http.get<Player[]>('http://localhost:3000/players').subscribe(
+    this.playersService.getPlayers().subscribe(
       (players) => {
         this.players = players; 
       },
