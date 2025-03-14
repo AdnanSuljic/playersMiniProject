@@ -99,6 +99,13 @@ export class PlayersComponent implements OnInit{
       .subscribe(
         (response) => {
           console.log('Data sent successfully!', response);
+          this.newPlayer = {
+            id: -1,
+            playerName: '',
+            numberOfGoals: 0,
+            numberOfAppearances: 0,
+            nationalTeam: '',
+          };
           this.http.get<Player[]>('http://localhost:3000/players').subscribe(
             (players) => {
               this.players = players; 
@@ -122,10 +129,8 @@ export class PlayersComponent implements OnInit{
   }
 
   updateChartData() {
-    // Clear old chart data
     this.chartOptions.data[0].dataPoints = [];
   
-    // Populate dataPoints with fresh data from `players`
     this.players.forEach(player => {
       this.chartOptions.data[0].dataPoints.push({
         label: player.playerName,
@@ -133,13 +138,11 @@ export class PlayersComponent implements OnInit{
       });
     });
   
-    // Sort players by goals in ascending order
     this.chartOptions.data[0].dataPoints.sort((a, b) => a.y - b.y);
   
-    this.cdr.detectChanges(); // Trigger UI update
+    this.cdr.detectChanges(); 
   }
   
-
   renderChart() {
     setTimeout(() => {
       if (this.chart) 
